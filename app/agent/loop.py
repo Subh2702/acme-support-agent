@@ -26,7 +26,7 @@ from sqlalchemy import select
 from app.agent.flags import AgentFlags
 from app.agent.handoff import open_ticket
 from app.agent.prompts import STATIC_SYSTEM_PROMPT, build_context, canned
-from app.agent.router import Route, classify
+from app.agent.router import Route, classify, extract_credentials
 from app.agent.state import ConversationState
 from app.agent.tracing import EventListener, Tracer
 from app.db.models import Conversation, Customer, Message, Order
@@ -46,6 +46,14 @@ log = get_logger(__name__)
 
 TurnStatus = Literal["ok", "fallback", "blocked", "demo_limit", "out_of_scope", "escalated"]
 SOFT_ERRORS = {"INVALID_ARGUMENTS", "INTERNAL_ERROR", "TOOL_TIMEOUT", "UNKNOWN_TOOL"}
+# "Let me check that for you." with no tool call: announced work that never happened.
+ANNOUNCED_WORK_RE = re.compile(
+    r"\b(?:let me|i(?:'ll| will| am going to|'m going to)|allow me to)\s+(?:now\s+|quickly\s+)?"
+    r"(?:check|look|verify|see|find|fetch|pull|process|cancel|refund|update|change|go ahead)\b|"
+    r"\b(?:one moment|just a moment|please (?:wait|hold)|hold on)\b|"
+    r"\b(?:check|dekh)(?:ta|ti) (?:hoon|hu)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -212,6 +220,8 @@ class SupportAgent:
         tools = available_tools(self.flags, allow_actions=allow_actions)
         schemas = [ToolSchema(t.name, t.description, t.input_schema()) for t in tools]
         messages = self._history(transcript)
+        if self.flags.router:
+            self._auto_verify(turn, text, messages)
         reply, status = self._run_loop(turn, messages, schemas, {t.name for t in tools})
         if self.flags.guardrails and status == "ok":
             reply = self._check_output(turn, messages, schemas, reply)
@@ -247,6 +257,37 @@ class SupportAgent:
         )
         return True
 
+    def _auto_verify(self, turn: _Turn, text: str, messages: list[ChatMessage]) -> None:
+        """Deterministic fast path: verify straight away when all credentials are present.
+
+        Small models often re-ask for details the customer already gave. The tool still
+        performs the real check; the model just sees the call and its result.
+        """
+        state = turn.ctx.state
+        if state.is_verified or state.verification_locked:
+            return
+        creds = extract_credentials(text)
+        if creds is None:
+            return
+        call = ToolCall(f"auto_verify_{turn.tracer.turn_index}", "verify_customer", creds)
+        result = self._execute_tool(turn, call, {"verify_customer"})
+        if self.llm is not None and self.llm.provider == "anthropic":
+            # A synthetic assistant turn would lack the thinking block Claude expects.
+            turn.notes.append(
+                f"The system already ran verify_customer with the details in "
+                f"the customer's message. Result: {result.message}"
+            )
+            return
+        messages.append(ChatMessage("assistant", "", tool_calls=[call]))
+        messages.append(
+            ChatMessage(
+                "tool",
+                self._render(call.name, result, turn),
+                tool_call_id=call.id,
+                is_error=not result.ok,
+            )
+        )
+
     def _escalate(self, turn: _Turn, reason_code: str, reason: str, urgency: str) -> int:
         with self.db.transaction() as session:
             ticket = open_ticket(
@@ -276,6 +317,7 @@ class SupportAgent:
         allowed: set[str],
     ) -> tuple[str, TurnStatus]:
         consecutive_errors = 0
+        nudged = False
         lang = turn.ctx.state.language
         for iteration in range(self.config.max_iterations):
             try:
@@ -291,6 +333,22 @@ class SupportAgent:
                 )
                 return canned("handed_over", lang, ticket=ticket), "escalated"
             if not response.tool_calls:
+                if (
+                    response.text
+                    and not nudged
+                    and ANNOUNCED_WORK_RE.search(response.text)
+                    and iteration < self.config.max_iterations - 1
+                ):
+                    nudged = True
+                    turn.tracer.record(
+                        "guardrail", "announced_without_tool_call", {"draft": response.text[:300]}
+                    )
+                    turn.notes.append(
+                        "Your draft said you would check or do something but you did not call "
+                        "a tool. Call the needed tool now (or answer directly if no tool is "
+                        "needed); never tell the customer to wait."
+                    )
+                    continue
                 if response.text:
                     return response.text, "ok"
                 turn.tracer.record("error", "empty_response", {"stop_reason": response.stop_reason})

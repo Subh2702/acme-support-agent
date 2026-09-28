@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acme Support Admin</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <div class="admin">
+    <header>
+      <div class="logo" aria-hidden="true">A</div>
+      <h1>Support admin</h1>
+      <span class="badge" id="model">…</span>
+      <div class="flex1"></div>
+      <a class="btn" href="/">Open chat</a>
+    </header>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="overview" role="tab">Overview</button>
+      <button class="tab" data-tab="conversations" role="tab">Conversations</button>
+      <button class="tab" data-tab="escalations" role="tab">Escalations</button>
+      <button class="tab" data-tab="eval" role="tab">Eval results</button>
+    </nav>
+
+    <section id="tab-overview">
+      <div class="grid" id="stats"></div>
+      <div class="split mt">
+        <div class="card"><h2>Guardrail hits</h2><table id="guardrails"></table></div>
+        <div class="card"><h2>Intents (router)</h2><table id="intents"></table></div>
+      </div>
+      <div class="card mt">
+        <h2>Demo data</h2>
+        <p class="small">Reseed customers and orders relative to today (wipes conversations, traces and tickets).</p>
+        <button class="btn" id="reset">Reset demo data</button>
+      </div>
+    </section>
+
+    <section id="tab-conversations" hidden>
+      <div class="split">
+        <div class="card p0">
+          <table><thead><tr><th>Updated (IST)</th><th>Turns</th><th class="num">Cost</th><th>Flags</th></tr></thead>
+            <tbody id="conv-list"></tbody></table>
+        </div>
+        <div class="card" id="conv-detail"><div class="empty">Select a conversation</div></div>
+      </div>
+    </section>
+
+    <section id="tab-escalations" hidden>
+      <div id="tickets"></div>
+    </section>
+
+    <section id="tab-eval" hidden>
+      <div class="card md" id="eval"><div class="empty">Loading…</div></div>
+    </section>
+  </div>
+  <script src="/static/js/admin.js" defer></script>
+</body>
+</html>

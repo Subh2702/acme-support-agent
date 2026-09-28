@@ -71,6 +71,8 @@ class Settings(BaseSettings):
     rate_limit_ip_per_min: int = 20
     rate_limit_session_per_min: int = 10
     max_message_chars: int = 2000
+    # Salt for hashing client IPs before storing them (raw IPs are never stored).
+    ip_hash_salt: str = "acme-demo-salt"
 
     @field_validator("database_url")
     @classmethod

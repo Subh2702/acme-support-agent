@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Acme Outdoors Support</title>
+  <meta name="description" content="Acme Outdoors support assistant demo">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <div class="app">
+    <main class="chat" aria-label="Support chat">
+      <div class="chat-header">
+        <div class="logo" aria-hidden="true">A</div>
+        <div>
+          <h1>Acme Outdoors Support</h1>
+          <p>Orders, refunds, deliveries &amp; policies · English or Hinglish</p>
+        </div>
+        <div class="spacer"></div>
+        <a class="btn demo-toggle" href="#demo">Demo tips</a>
+        <button class="btn" id="new-chat" type="button" title="Start a new conversation">New chat</button>
+      </div>
+      <div class="banner" id="escalation-banner" role="status">
+        <span aria-hidden="true">🧑‍💼</span>
+        <span id="escalation-text">This conversation has been handed to a human specialist.</span>
+      </div>
+      <div class="messages" id="messages" aria-live="polite">
+        <div class="msg bot"><div class="bubble"><p>Namaste! I'm Acme Assist. I can track orders, cancel or refund them, change delivery addresses and answer policy questions. How can I help?</p></div></div>
+      </div>
+      <div class="typing" id="typing" aria-live="polite">
+        <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+        <span id="typing-label">Thinking…</span>
+      </div>
+      <form class="composer" id="composer">
+        <textarea id="input" rows="1" maxlength="2000" placeholder="Type your message…" aria-label="Message" required></textarea>
+        <button class="btn btn-primary" id="send" type="submit">Send</button>
+      </form>
+      <div class="hint-line">Demo only: fictional store and data. Never share real card, bank, OTP or Aadhaar details.</div>
+    </main>
+
+    <aside class="side" id="demo" aria-label="Demo tips">
+      <section class="card">
+        <h2>Demo customers</h2>
+        <p class="small">The agent verifies identity with email + order number + delivery PIN code.</p>
+        <div id="creds"></div>
+      </section>
+      <section class="card">
+        <h2>Try asking</h2>
+        <div class="chips" id="prompts"></div>
+      </section>
+      <section class="card">
+        <h2>Under the hood</h2>
+        <p class="small">Business rules (refund window, limits, ownership) are enforced in code inside each tool, so no prompt can talk the agent past them.</p>
+        <span class="badge" id="model-badge">model: …</span>
+      </section>
+    </aside>
+  </div>
+  <script src="/static/js/chat.js" defer></script>
+</body>
+</html>

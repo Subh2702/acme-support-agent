@@ -321,3 +321,20 @@ def classify(text: str) -> Route:
     else:
         intent, conf = "account_lookup" if DOMAIN_RE.search(text) else "policy_question", 0.4
     return Route(intent, conf, sentiment, wants_human, legal, language, signals)
+
+
+_CRED_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+")
+_CRED_PIN_RE = re.compile(r"(?<![\d₹,.A-Za-z-])[1-9]\d{5}(?![\d,])")
+
+
+def extract_credentials(text: str) -> dict[str, str] | None:
+    """Email + order number + 6-digit PIN, if a message contains all three unambiguously."""
+    emails = set(_CRED_EMAIL_RE.findall(text))
+    orders = {
+        m.upper().replace("AO", "AO-").replace("--", "-")
+        for m in re.findall(r"\bAO-?\d{5}\b", text, re.IGNORECASE)
+    }
+    pins = set(_CRED_PIN_RE.findall(text))
+    if len(emails) == 1 and len(pins) == 1 and len(orders) >= 1:
+        return {"email": emails.pop(), "order_number": sorted(orders)[0], "pin_code": pins.pop()}
+    return None

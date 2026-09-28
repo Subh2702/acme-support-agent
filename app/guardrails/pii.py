@@ -51,6 +51,10 @@ _SENSITIVE_KEYS = {
     "bank_account",
     "shipping_address",
     "new_address",
+    "verified_name",
+    "verified_email",
+    "customer_name",
+    "customer_first_name",
 }
 
 

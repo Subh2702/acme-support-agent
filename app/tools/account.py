@@ -135,7 +135,7 @@ def verify_customer(ctx: ToolContext, args: VerifyArgs) -> ToolResult:
             state.verified_name = customer.name
             state.verified_email = customer.email
             return ToolResult.success(
-                f"Verified. The customer is {customer.name}.",
+                "Verified successfully. Address the customer by their first name.",
                 {"customer_name": customer.name, "customer_first_name": customer.name.split()[0]},
             )
         state.failed_verifications += 1

@@ -44,10 +44,10 @@ def order(db: Database, number: str) -> Order:
 
 
 def test_verify_then_refund_flow(db: Database) -> None:
+    # verify_customer runs automatically (router fast path) because all credentials are present
     a, llm = agent(
         db,
         [
-            tool("verify_customer", **PRIYA),
             tool("get_order", order_number="AO-10001"),
             tool("issue_refund", order_number="AO-10001", amount_paise=149800, reason="fit"),
             text("Done! Your refund of ₹1,498 has been issued to your UPI account."),
@@ -56,6 +56,8 @@ def test_verify_then_refund_flow(db: Database) -> None:
     reply = a.handle("c1", f"Please refund my order. {CREDS}")
     assert reply.status == "ok" and "₹1,498" in reply.reply
     assert reply.tools_used == ["verify_customer", "get_order", "issue_refund"]
+    first_call = llm.calls[0]["messages"]
+    assert first_call[-2].tool_calls[0].name == "verify_customer"  # model sees the auto step
     assert order(db, "AO-10001").refunds[0].status == RefundStatus.ISSUED
     kinds = {e.kind for e in events(db)}
     assert {"llm_call", "tool_call", "policy_decision", "turn", "router"} <= kinds
@@ -354,3 +356,43 @@ def test_pending_refund_counts_as_progress(db: Database) -> None:
     assert reply.escalated
     with db.session() as s:
         assert s.scalars(select(Refund)).all()[-1].status == RefundStatus.PENDING_APPROVAL
+
+
+def test_auto_verify_only_with_all_three_credentials(db: Database) -> None:
+    a, llm = agent(db, [text("Please share your PIN code.")])
+    a.handle("c1", "I am priya.sharma@example.in, order AO-10001")
+    assert llm.calls[0]["messages"][-1].role == "user"  # no auto step without a PIN
+
+
+def test_auto_verify_failure_is_visible_to_model(db: Database) -> None:
+    a, llm = agent(db, [text("Those details don't match, please re-check.")])
+    a.handle("c1", "priya.sharma@example.in AO-10001 PIN 111111")
+    tool_msg = llm.calls[0]["messages"][-1]
+    assert tool_msg.role == "tool" and "VERIFICATION_FAILED" in tool_msg.content
+
+
+def test_auto_verify_disabled_without_router(db: Database) -> None:
+    a, llm = agent(db, [text("ok")], flags=AgentFlags(router=False))
+    a.handle("c1", CREDS)
+    assert llm.calls[0]["messages"][-1].role == "user"
+
+
+def test_announced_work_without_tool_call_is_nudged_once(db: Database) -> None:
+    a, llm = agent(
+        db,
+        [
+            text("Let me check the status of that order for you."),
+            tool("list_orders"),
+            text("You have no orders visible until you verify."),
+        ],
+    )
+    reply = a.handle("c1", "where is my order?")
+    assert reply.reply.startswith("You have no orders")
+    assert "did not call a tool" in llm.calls[1]["context"]
+    names = [e.name for e in events(db) if e.kind == "guardrail"]
+    assert names.count("announced_without_tool_call") == 1
+
+
+def test_nudge_happens_at_most_once(db: Database) -> None:
+    a, _ = agent(db, [text("Let me check."), text("Let me check again.")])
+    assert a.handle("c1", "where is my order?").reply == "Let me check again."
