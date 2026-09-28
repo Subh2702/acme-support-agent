@@ -327,3 +327,21 @@ def test_handoff_summary_contents() -> None:
     assert "₹8,999" in summary["suggested_next_step"]
     assert "4111" not in str(summary)
     assert mask_email("a@b.in") == "a***@b.in"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "How soon do I need to report a damaged item?",
+        "Is shipping free? What's the minimum order for free delivery?",
+        "Until when can I cancel an order?",
+    ],
+)
+def test_general_questions_route_to_policy_with_confidence(text: str) -> None:
+    route = classify(text)
+    assert route.intent == "policy_question" and route.confidence >= 0.7
+
+
+def test_personal_problems_are_not_general_questions() -> None:
+    assert classify("My tent arrived damaged").intent == "complaint"
+    assert classify("Is my order AO-10014 shipped?").intent == "account_lookup"

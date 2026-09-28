@@ -15,6 +15,7 @@ Every non-obvious choice, with a one-line rationale. Deviations from the origina
   - Qwen3.5's hybrid linear-attention design gets no prompt-prefix cache in Ollama, which measured 16–35 s per call.
   - Plain `qwen3:4b` is the reasoning variant and emits about 350 reasoning tokens even with `think:false`.
   - The instruct variant caches the ~1,900-token prompt and runs about 6–10 s per call on CPU.
+- **GPU via Ollama's Vulkan backend (`OLLAMA_VULKAN=1`), not CUDA.** The installed Ollama ships only CPU and Vulkan runners, and Vulkan on the NVIDIA driver gives ~70 tok/s on the RTX 4060 without a 1–2 GB CUDA download (disk space was a stated constraint). All reported latencies come from this setup.
 - **Hugging Face router and Anthropic implementations are kept.** The same `LLMClient` interface serves the hosted demo on Render, where there is no GPU or Ollama.
 - **Hugging Face calls are priced from the router's live per-provider price list, keyed on the `x-inference-provider` header.** Costs come from real list prices instead of guesses.
 - **The default HF model uses the `:cheapest` routing suffix.** Auto-routing picked a provider about 9× more expensive in testing.
@@ -68,7 +69,7 @@ Every non-obvious choice, with a one-line rationale. Deviations from the origina
 - **A pending-approval refund counts as escalation, not a wrong action.** No money moved, and a human decides.
 - **An "answered_lookup" outcome was added to the four in the brief** **(deviation)**. Order-status questions are neither policy answers nor refusals.
 - **Attack scenarios always use scripted payloads.** An LLM simulator might paraphrase the attack away; exact payloads make configs comparable.
-- **The ablation grid uses the scripted simulator on a stratified subset; the main run uses the LLM simulator on all scenarios.** On a CPU-only SLM each conversation takes about a minute, so the grid holds customer turns constant across configs, which also makes the comparison fairer.
+- **The ablation grid uses the scripted simulator on a stratified subset of 40; the main run uses the LLM simulator on all 116.** Scripted customer turns hold inputs constant across the five configs, which makes the comparison fair. The subset was sized when runs were CPU-bound and kept for comparability.
 - **The LLM judge is the same local 4B model.** It is the only model available; its scores are secondary and reported as such.
 - **Costs are reported two ways: actual (₹0 locally) and a hosted reference price.** The reference uses the measured token counts × the HF list price of Qwen3-235B, making the cost model visible without claiming it was paid.
 

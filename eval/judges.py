@@ -27,7 +27,9 @@ MUTATING = ("issue_refund", "cancel_order", "update_address")
 
 
 def _norm(text: str) -> str:
-    return re.sub(r"[‐-―]", "-", text).lower()
+    """Lower-case and treat hyphens/dashes as spaces: '6-month' matches '6 month(s)'."""
+    text = re.sub(r"[‐-―-]", " ", text.lower())
+    return re.sub(r"\s+", " ", text)
 
 
 @dataclass

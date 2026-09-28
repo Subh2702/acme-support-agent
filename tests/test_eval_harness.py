@@ -240,3 +240,11 @@ def test_run_scenario_end_to_end_and_reports(scenarios: list[Scenario]) -> None:
     assert "Wrong-action rate" in md and "| Task success rate | 50.0% |" in md
     ab = ablation_markdown(meta, {"baseline": metrics, "full": metrics})
     assert "Baseline (prompt only)" in ab and "+ router (full)" in ab
+
+
+def test_judge_normalises_hyphens_and_dashes() -> None:
+    from eval.judges import _norm
+
+    assert "6 month" in _norm("We offer a 6-month warranty")
+    assert "2 3" in _norm("UPI refunds take 2–3 business days")
+    assert "30 day" in _norm("a 30-day window")

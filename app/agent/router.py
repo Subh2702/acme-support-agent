@@ -139,6 +139,13 @@ POLICY_RE = _rx(
     r"exchange",
     r"return window",
     r"international",
+    r"how soon",
+    r"until when",
+    r"when can i",
+    r"shipping",
+    r"free delivery",
+    r"minimum order",
+    r"what does .{1,40} mean",
 )
 COMPLAINT_RE = _rx(
     r"damaged",
@@ -286,10 +293,15 @@ ORDER_NO_RE = re.compile(r"\bAO-?\d{5}\b", re.IGNORECASE)
 
 
 def _is_general_policy_question(text: str) -> bool:
-    """'What is your return policy?' is a policy question, not a request to act."""
+    """A general question about how things work, not about the customer's own order.
+
+    'What is your return policy?' or 'How soon must I report a damaged item?' should be
+    answered from the help center, not treated as an action request or a complaint.
+    """
     asks = text.strip().endswith("?") or bool(QUESTION_START_RE.match(text))
     personal = re.search(r"\b(?:my|mera|meri|mere|mujhe|this order)\b", text, re.IGNORECASE)
-    return asks and bool(POLICY_RE.search(text)) and not ORDER_NO_RE.search(text) and not personal
+    topical = POLICY_RE.search(text) or COMPLAINT_RE.search(text)
+    return asks and bool(topical) and not ORDER_NO_RE.search(text) and not personal
 
 
 def classify(text: str) -> Route:
@@ -312,6 +324,8 @@ def classify(text: str) -> Route:
         intent, conf = "out_of_scope", 0.9
     elif ACTION_RE.search(text) and not _is_general_policy_question(text):
         intent, conf = "action_request", 0.8
+    elif _is_general_policy_question(text) and sentiment not in ("negative", "very_negative"):
+        intent, conf = "policy_question", 0.8
     elif COMPLAINT_RE.search(text) or sentiment in ("negative", "very_negative"):
         intent, conf = "complaint", 0.7
     elif LOOKUP_RE.search(text) or ORDER_NO_RE.search(text):
