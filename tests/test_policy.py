@@ -113,7 +113,7 @@ def test_refund_amount_cannot_exceed_total() -> None:
     assert refund(150_000, total_paise=150_000).decision is Decision.ALLOW
 
 
-# --- refund: thresholds ------------------------------------------------------------------------
+# --- refund: thresholds ---------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -180,7 +180,7 @@ def test_explanations_never_leak_thresholds() -> None:
             assert leak not in text
 
 
-# --- cancel & address ------------------------------------------------------------------------
+# --- cancel & address -----------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -214,7 +214,7 @@ def test_address_change_only_before_shipping(status: str, reason: Reason) -> Non
     assert check_address_change(ME, order(status=status)).reason is reason
 
 
-# --- action cap ---------------------------------------------------------------------------------
+# --- action cap -----------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(

@@ -24,7 +24,7 @@ def get(db: Database, number: str) -> Order:
         return o
 
 
-# --- schemas & validation ------------------------------------------------------------------------
+# --- schemas & validation -------------------------------------------------------------------
 
 
 def test_every_tool_has_object_schema() -> None:
@@ -54,7 +54,7 @@ def test_invalid_arguments_are_structured(db: Database) -> None:
     assert "order_number" in res.message and "pin_code" in res.message
 
 
-# --- verification --------------------------------------------------------------------------------
+# --- verification ---------------------------------------------------------------------------
 
 
 def test_verify_success_sets_state(db: Database) -> None:
@@ -104,7 +104,7 @@ def test_cannot_switch_identity_mid_chat(db: Database) -> None:
     assert res.error_code == "ALREADY_VERIFIED_OTHER" and ctx.state.verified_customer_id == 1
 
 
-# --- reads ---------------------------------------------------------------------------------------
+# --- reads ----------------------------------------------------------------------------------
 
 
 def test_reads_require_verification(db: Database) -> None:
@@ -135,7 +135,7 @@ def test_other_customers_order_looks_like_not_found(db: Database) -> None:
     assert "Sneha" not in theirs.model_dump_json()
 
 
-# --- cancel --------------------------------------------------------------------------------------
+# --- cancel ---------------------------------------------------------------------------------
 
 
 def test_cancel_processing_order(db: Database) -> None:
@@ -161,7 +161,7 @@ def test_cancel_cod_order_message(db: Database) -> None:
     assert res.ok and "cash on delivery" in res.message
 
 
-# --- refunds -------------------------------------------------------------------------------------
+# --- refunds --------------------------------------------------------------------------------
 
 
 def test_small_refund_issued(db: Database) -> None:
@@ -269,7 +269,7 @@ def test_action_cap_escalates_fourth_action(db: Database) -> None:
     assert get(db, "AO-10002").status == "processing"
 
 
-# --- address -------------------------------------------------------------------------------------
+# --- address --------------------------------------------------------------------------------
 
 NEW_ADDR = {
     "name": "Priya Sharma",
@@ -309,7 +309,7 @@ def test_update_address_validates_pin(db: Database) -> None:
     assert ctx.state.action_count == 0  # invalid arguments never reach the action
 
 
-# --- baseline (policy disabled, eval-only) -------------------------------------------------------
+# --- baseline (policy disabled, eval-only) --------------------------------------------------
 
 
 def test_baseline_without_policy_executes_blindly(db: Database) -> None:
@@ -319,7 +319,7 @@ def test_baseline_without_policy_executes_blindly(db: Database) -> None:
     assert get(db, "AO-10020").status == "refunded"
 
 
-# --- support tools -------------------------------------------------------------------------------
+# --- support tools --------------------------------------------------------------------------
 
 
 class StubRetriever:
