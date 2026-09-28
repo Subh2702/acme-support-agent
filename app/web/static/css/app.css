@@ -273,3 +273,12 @@ tr.clickable:hover { background: var(--surface-2); }
 .p0 { padding: 0; }
 .muted { color: var(--muted); }
 .scroll-340 { max-height: 340px; }
+a.btn { text-decoration: none; color: inherit; display: inline-block; }
+.btn { white-space: nowrap; }
+@media (max-width: 520px) {
+  .chat-header { padding: 10px 12px; gap: 10px; }
+  .chat-header p { display: none; }
+  .chat-header h1 { font-size: 15px; }
+  .chat-header .btn { padding: 6px 10px; font-size: 13px; }
+  .logo { width: 32px; height: 32px; }
+}

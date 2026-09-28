@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic>=2.7
+pydantic-settings
+sqlalchemy>=2.0
+psycopg[binary]
+chromadb
+fastembed
+anthropic
+httpx
+pyyaml

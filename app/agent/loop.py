@@ -222,6 +222,15 @@ class SupportAgent:
         messages = self._history(transcript)
         if self.flags.router:
             self._auto_verify(turn, text, messages)
+            route = turn.route
+            if (
+                self.flags.rag
+                and self.retriever is not None
+                and route is not None
+                and route.intent == "policy_question"
+                and route.confidence >= 0.7
+            ):
+                self._auto_retrieve(turn, text, messages)
         reply, status = self._run_loop(turn, messages, schemas, {t.name for t in tools})
         if self.flags.guardrails and status == "ok":
             reply = self._check_output(turn, messages, schemas, reply)
@@ -270,23 +279,28 @@ class SupportAgent:
         if creds is None:
             return
         call = ToolCall(f"auto_verify_{turn.tracer.turn_index}", "verify_customer", creds)
-        result = self._execute_tool(turn, call, {"verify_customer"})
+        self._inject_tool_call(turn, call, messages)
+
+    def _auto_retrieve(self, turn: _Turn, text: str, messages: list[ChatMessage]) -> None:
+        """Router fast path for FAQ intents: retrieve help-center passages before generating."""
+        call = ToolCall(
+            f"auto_search_{turn.tracer.turn_index}", "search_help_center", {"query": text[:300]}
+        )
+        self._inject_tool_call(turn, call, messages)
+
+    def _inject_tool_call(
+        self, turn: _Turn, call: ToolCall, messages: list[ChatMessage]
+    ) -> ToolResult:
+        """Run a tool on the model's behalf and show the model the call and its result."""
+        result = self._execute_tool(turn, call, {call.name})
+        rendered = self._render(call.name, result, turn)
         if self.llm is not None and self.llm.provider == "anthropic":
             # A synthetic assistant turn would lack the thinking block Claude expects.
-            turn.notes.append(
-                f"The system already ran verify_customer with the details in "
-                f"the customer's message. Result: {result.message}"
-            )
-            return
+            turn.notes.append(f"The system already ran {call.name}. Result: {rendered}")
+            return result
         messages.append(ChatMessage("assistant", "", tool_calls=[call]))
-        messages.append(
-            ChatMessage(
-                "tool",
-                self._render(call.name, result, turn),
-                tool_call_id=call.id,
-                is_error=not result.ok,
-            )
-        )
+        messages.append(ChatMessage("tool", rendered, tool_call_id=call.id, is_error=not result.ok))
+        return result
 
     def _escalate(self, turn: _Turn, reason_code: str, reason: str, urgency: str) -> int:
         with self.db.transaction() as session:

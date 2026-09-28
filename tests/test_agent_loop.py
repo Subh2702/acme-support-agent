@@ -396,3 +396,30 @@ def test_announced_work_without_tool_call_is_nudged_once(db: Database) -> None:
 def test_nudge_happens_at_most_once(db: Database) -> None:
     a, _ = agent(db, [text("Let me check."), text("Let me check again.")])
     assert a.handle("c1", "where is my order?").reply == "Let me check again."
+
+
+class KBStub:
+    def search(self, query: str, k: int = 4) -> list[Passage]:
+        return [
+            Passage("returns-and-refunds#return-window", "Returns", "Return within 30 days.", 0.9)
+        ]
+
+
+def test_policy_question_triggers_auto_retrieval(db: Database) -> None:
+    a, llm = agent(
+        db, [text("You can return items within 30 days of delivery.")], retriever=KBStub()
+    )
+    reply = a.handle("c1", "How many days do I have to return an item?")
+    msgs = llm.calls[0]["messages"]
+    assert msgs[-2].tool_calls[0].name == "search_help_center"
+    assert "Return within 30 days" in msgs[-1].content
+    assert reply.tools_used == ["search_help_center"]
+
+
+def test_no_auto_retrieval_without_rag_or_for_actions(db: Database) -> None:
+    a, llm = agent(db, [text("ok"), text("ok")], retriever=KBStub(), flags=AgentFlags(rag=False))
+    a.handle("c1", "How many days do I have to return an item?")
+    assert llm.calls[0]["messages"][-1].role == "user"
+    b, llm2 = agent(db, [text("ok")], retriever=KBStub())
+    b.handle("c2", "Please cancel my order AO-10002")
+    assert llm2.calls[0]["messages"][-1].role == "user"
