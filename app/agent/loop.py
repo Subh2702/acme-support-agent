@@ -46,6 +46,11 @@ log = get_logger(__name__)
 
 TurnStatus = Literal["ok", "fallback", "blocked", "demo_limit", "out_of_scope", "escalated"]
 SOFT_ERRORS = {"INVALID_ARGUMENTS", "INTERNAL_ERROR", "TOOL_TIMEOUT", "UNKNOWN_TOOL"}
+NUDGE_MESSAGE = (
+    "[Automated system message, not from the customer] You said you would check or do "
+    "something but called no tool, so nothing happened. Call the tool you need now. If no "
+    "tool is needed, give the customer the final answer. Never ask them to wait."
+)
 # "Let me check that for you." with no tool call: announced work that never happened.
 ANNOUNCED_WORK_RE = re.compile(
     r"\b(?:let me|i(?:'ll| will| am going to|'m going to)|allow me to)\s+(?:now\s+|quickly\s+)?"
@@ -357,11 +362,10 @@ class SupportAgent:
                     turn.tracer.record(
                         "guardrail", "announced_without_tool_call", {"draft": response.text[:300]}
                     )
-                    turn.notes.append(
-                        "Your draft said you would check or do something but you did not call "
-                        "a tool. Call the needed tool now (or answer directly if no tool is "
-                        "needed); never tell the customer to wait."
-                    )
+                    # The correction goes into the (in-turn) conversation itself: small models
+                    # follow the most recent message far more reliably than a context note.
+                    messages.append(ChatMessage("assistant", response.text, raw=response.raw))
+                    messages.append(ChatMessage("user", NUDGE_MESSAGE))
                     continue
                 if response.text:
                     return response.text, "ok"

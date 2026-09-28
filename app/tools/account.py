@@ -243,15 +243,25 @@ def _eligibility(order: Order, ctx: ToolContext) -> dict[str, str]:
     actor = Actor(ctx.state.verified_customer_id, 0)
     facts = order_facts(order)
 
-    def verdict(result: PolicyResult) -> str:
+    number = order.order_number
+
+    def verdict(result: PolicyResult, call: str) -> str:
         if result.decision is Decision.DENY:
             return f"not possible: {result.explanation}"
-        return "possible: call the tool; the system decides the outcome"
+        return f"possible — if the customer wants it, call {call} (the system decides the outcome)"
 
     return {
-        "full_refund": verdict(check_refund(actor, facts, order.total_paise, ctx.now, ctx.policy)),
-        "cancel": verdict(check_cancel(actor, facts, ctx.policy)),
-        "change_address": verdict(check_address_change(actor, facts, ctx.policy)),
+        "full_refund": verdict(
+            check_refund(actor, facts, order.total_paise, ctx.now, ctx.policy),
+            f'issue_refund(order_number="{number}", amount_paise={order.total_paise})',
+        ),
+        "cancel": verdict(
+            check_cancel(actor, facts, ctx.policy), f'cancel_order(order_number="{number}")'
+        ),
+        "change_address": verdict(
+            check_address_change(actor, facts, ctx.policy),
+            f'update_address(order_number="{number}", new_address=...)',
+        ),
     }
 
 

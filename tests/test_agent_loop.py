@@ -388,7 +388,9 @@ def test_announced_work_without_tool_call_is_nudged_once(db: Database) -> None:
     )
     reply = a.handle("c1", "where is my order?")
     assert reply.reply.startswith("You have no orders")
-    assert "did not call a tool" in llm.calls[1]["context"]
+    retry = llm.calls[1]["messages"]
+    assert retry[-2].role == "assistant" and retry[-2].content.startswith("Let me check")
+    assert retry[-1].role == "user" and "called no tool" in retry[-1].content
     names = [e.name for e in events(db) if e.kind == "guardrail"]
     assert names.count("announced_without_tool_call") == 1
 
