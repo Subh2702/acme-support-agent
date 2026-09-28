@@ -55,6 +55,7 @@ def make_ctx(
     now: datetime = FIXED_NOW,
     conversation_id: str = "conv-test",
     retriever: object | None = None,
+    transcript: list[dict[str, str]] | None = None,
 ) -> ToolContext:
     from app.agent.flags import AgentFlags
     from app.agent.state import ConversationState
@@ -73,7 +74,7 @@ def make_ctx(
         tracer=Tracer(database, conversation_id),
         flags=flags or AgentFlags.production(),
         retriever=retriever,  # type: ignore[arg-type]
-        transcript=[{"role": "user", "content": "hi, I need help with my order"}],
+        transcript=transcript or [{"role": "user", "content": "hi, I need help with my order"}],
     )
 
 

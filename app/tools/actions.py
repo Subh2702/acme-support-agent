@@ -292,8 +292,38 @@ def issue_refund(ctx: ToolContext, args: RefundArgs) -> ToolResult:
         )
 
 
+def _squash(text: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", text.lower())
+
+
+def address_from_customer(address: NewAddress, transcript: list[dict[str, str]]) -> bool:
+    """True if one customer message contains both the new PIN code and the address line.
+
+    Guards against the model inventing or "correcting" address data (for example
+    swapping a mistyped PIN code for one it saw elsewhere in the chat).
+    """
+    line = _squash(address.line1)[:10]
+    for message in transcript:
+        if message["role"] != "user":
+            continue
+        text = _squash(message["content"])
+        if address.pin_code in re.findall(r"\d+", message["content"]) and line in text:
+            return True
+    return False
+
+
 def update_address(ctx: ToolContext, args: AddressArgs) -> ToolResult:
     tool = "update_address"
+    if ctx.flags.guardrails and not address_from_customer(args.new_address, ctx.transcript):
+        ctx.tracer.record(
+            "guardrail", "address_not_from_customer", {"order_number": args.order_number}
+        )
+        return ToolResult.failure(
+            "ADDRESS_NOT_FROM_CUSTOMER",
+            "The new address must be exactly what the customer wrote, including a valid "
+            "6-digit PIN code in the same message. Do not fill in or correct any part of it; "
+            "ask the customer to send the complete new address.",
+        )
     with ctx.db.transaction() as session:
         order, error = _pre_action(ctx, session, tool, args.order_number)
         if error is not None or order is None:

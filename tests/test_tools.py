@@ -249,7 +249,8 @@ def test_unverified_refund_denied(db: Database) -> None:
 
 
 def test_action_cap_escalates_fourth_action(db: Database) -> None:
-    ctx = make_ctx(db, state=verified_state())
+    msg = [{"role": "user", "content": "Send it to 1 MG Road, Bengaluru, Karnataka 560001"}]
+    ctx = make_ctx(db, state=verified_state(), transcript=msg)
     call(ctx, "cancel_order", order_number="AO-10003")  # denied, still counts
     call(ctx, "cancel_order", order_number="AO-10005")  # denied
     call(
@@ -282,8 +283,17 @@ NEW_ADDR = {
 }
 
 
+ADDR_MSG = [
+    {
+        "role": "user",
+        "content": "New address: Priya Sharma, 22, 12th Main, HAL 2nd Stage, "
+        "Indiranagar, Bengaluru, Karnataka 560038, +91 98450 12345",
+    }
+]
+
+
 def test_update_address_before_shipping(db: Database) -> None:
-    ctx = make_ctx(db, state=verified_state())
+    ctx = make_ctx(db, state=verified_state(), transcript=ADDR_MSG)
     res = call(ctx, "update_address", order_number="AO-10002", new_address=NEW_ADDR)
     assert res.ok
     order = get(db, "AO-10002")
@@ -291,7 +301,7 @@ def test_update_address_before_shipping(db: Database) -> None:
 
 
 def test_update_address_after_shipping_denied(db: Database) -> None:
-    ctx = make_ctx(db, state=verified_state())
+    ctx = make_ctx(db, state=verified_state(), transcript=ADDR_MSG)
     res = call(ctx, "update_address", order_number="AO-10003", new_address=NEW_ADDR)
     assert res.error_code == "ADDRESS_ALREADY_SHIPPED"
     assert get(db, "AO-10003").ship_pin == "560034"
@@ -374,3 +384,52 @@ def test_get_order_includes_policy_eligibility_without_thresholds(db: Database) 
         flags=AgentFlags(policy=False, guardrails=False, rag=False, router=False),
     )
     assert "eligibility" not in call(baseline, "get_order", order_number="AO-10001").data
+
+
+def test_address_must_come_from_customer_verbatim(db: Database) -> None:
+    """Regression from the eval: the model 'fixed' a mistyped 5-digit PIN with one it saw
+    earlier in the chat (the verification PIN) and changed the address."""
+    transcript = [
+        {"role": "user", "content": "gurpreet.singh@example.in AO-10019 160022"},
+        {"role": "user", "content": "Send it to House 12, Sector 35, Chandigarh 16002"},
+    ]
+    ctx = make_ctx(db, state=verified_state(6, "Gurpreet Singh"), transcript=transcript)
+    guessed = {
+        "name": "Gurpreet Singh",
+        "line1": "House 12, Sector 35",
+        "city": "Chandigarh",
+        "state": "Chandigarh",
+        "pin_code": "160022",
+    }
+    res = call(ctx, "update_address", order_number="AO-10019", new_address=guessed)
+    assert res.error_code == "ADDRESS_NOT_FROM_CUSTOMER"
+    assert get(db, "AO-10019").address_updated_at is None
+    assert ctx.state.action_count == 0  # never reached the action
+
+
+def test_address_provenance_accepts_reformatted_customer_text(db: Database) -> None:
+    transcript = [
+        {"role": "user", "content": "naya address: house 45, sector-8, Panchkula, Haryana 134109"}
+    ]
+    ctx = make_ctx(db, state=verified_state(6, "Gurpreet Singh"), transcript=transcript)
+    new = {
+        "name": "Gurpreet Singh",
+        "line1": "House 45, Sector 8",
+        "city": "Panchkula",
+        "state": "Haryana",
+        "pin_code": "134109",
+    }
+    assert call(ctx, "update_address", order_number="AO-10019", new_address=new).ok
+
+
+def test_address_provenance_is_a_guardrail_layer(db: Database) -> None:
+    flags = AgentFlags(policy=True, guardrails=False, rag=False, router=False)
+    ctx = make_ctx(db, state=verified_state(6, "Gurpreet Singh"), flags=flags)
+    new = {
+        "name": "Gurpreet",
+        "line1": "Made up street",
+        "city": "Chandigarh",
+        "state": "Chandigarh",
+        "pin_code": "160022",
+    }
+    assert call(ctx, "update_address", order_number="AO-10019", new_address=new).ok
