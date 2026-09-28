@@ -1,0 +1,56 @@
+{
+ "id": "pol_damaged_report_window",
+ "category": "policy",
+ "persona": "polite",
+ "config": "rag",
+ "expected": [
+  "answered_policy"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "ScriptedCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "How soon do I need to report a damaged item?"
+  },
+  {
+   "role": "assistant",
+   "content": "I can help with that. Please check our help center for the specific policy on reporting damaged items. Here’s what I found:  \n\n- You should report a damaged item **within 7 days** of receiving the order.  \n- If the damage is significant, you must notify us **within 24 hours** of delivery.  \n\nFor more details, I recommend visiting our help center or contacting us directly. Would you like me to share the full policy article?"
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": false,
+  "kb_grounded": false,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['answered_policy'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": null,
+ "llm_calls": 1,
+ "input_tokens": 2009,
+ "output_tokens": 95,
+ "cost_paise": 0,
+ "hosted_reference_paise": 2,
+ "turn_latency_ms": [
+  1569
+ ],
+ "guardrail_events": [],
+ "wall_s": 1.6,
+ "error": null
+}

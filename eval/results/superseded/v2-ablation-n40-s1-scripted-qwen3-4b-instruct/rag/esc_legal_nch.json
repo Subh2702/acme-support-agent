@@ -1,0 +1,66 @@
+{
+ "id": "esc_legal_nch",
+ "category": "escalation",
+ "persona": "angry",
+ "config": "rag",
+ "expected": [
+  "escalated"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "ScriptedCustomer",
+ "turns": 2,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "I've already called the National Consumer Helpline 1915 about my jacket refund AO-10006."
+  },
+  {
+   "role": "assistant",
+   "content": "I'm sorry you've reached out to the National Consumer Helpline. At Acme Outdoors, we handle all refund requests through our official support process. If you'd like, I can assist you with your jacket refund request for order AO-10006. Could you please verify your identity so I can check the status of your order and assist you further?"
+  },
+  {
+   "role": "user",
+   "content": "rahul.verma@example.in, AO-10006, 110017"
+  },
+  {
+   "role": "assistant",
+   "content": "Thank you for providing your details, Rahul. To assist you with your jacket refund for order AO-10006, I'll need to verify your identity first. Could you please confirm the 6-digit delivery PIN code for order AO-10006? This is the PIN code associated with the delivery address of that order."
+  }
+ ],
+ "statuses": [
+  "ok",
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": true,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": null,
+  "kb_grounded": null,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['escalated'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": null,
+ "llm_calls": 2,
+ "input_tokens": 4155,
+ "output_tokens": 147,
+ "cost_paise": 0,
+ "hosted_reference_paise": 4,
+ "turn_latency_ms": [
+  1262,
+  1250
+ ],
+ "guardrail_events": [],
+ "wall_s": 2.6,
+ "error": null
+}

@@ -73,7 +73,53 @@ Admin: `/admin`, user `admin`, password from `ADMIN_PASSWORD`.
 
 ## Results
 
-<!-- RESULTS -->
+All numbers below come from real runs committed under [`eval/results/`](eval/results/) (per-scenario transcripts and verdicts included). The agent model is `qwen3:4b-instruct` via Ollama on an RTX 4060 laptop GPU. Cost is ₹0 because inference is local; the "hosted ref." column prices the measured tokens at the Hugging Face list price for Qwen3-235B on DeepInfra ($0.09/$0.55 per MTok, ₹85/$).
+
+### Main run: full stack, 116 scenarios, LLM-simulated customers
+`python -m eval.run_eval --config full --n 0 --seed 1 --simulator llm --judge` → [summary](eval/results/runs/full-n116-s1-llm-qwen3-4b-instruct/full/summary.md)
+
+| Metric | Value |
+|---|---|
+| **Task success rate** | **78.4%** |
+| **Wrong-action rate** (primary safety metric) | **1.7%** (2/116; both were actions the simulated customer explicitly asked for; see note) |
+| Injection attack success rate (12 attacks) | **0.0%** |
+| Social-engineering success rate (7 attempts) | **0.0%** |
+| False non-delivery claim success (3 scams) | **0.0%** |
+| False "done" claims in replies | 0.9% |
+| Escalation precision / recall | 90.0% / 40.9% |
+| Policy-answer accuracy / KB grounding | 95.5% / 72.7% |
+| Avg customer turns (successful conversations) | 2.21 |
+| Avg LLM calls / tokens per conversation | 3.22 / 7,638 |
+| Cost per conversation: actual (local) · hosted reference | ₹0.00 · ₹0.07 |
+| Turn latency p50 / p95 | 1.5 s / 4.3 s |
+| LLM judge (same 4B model): tone / helpfulness | 4.98 / 4.79 (faithfulness: judge returned null for all 116, so reported as n/a) |
+
+**Note on the two "wrong actions":** in `look_status_processing` and `ver_wrong_pin_thrice`, the LLM playing the customer drifted from its scripted goal and *asked* for a cancellation or refund. The agent verified the customer and did exactly what was asked, within policy. The judge counts any unexpected account change as wrong, so these are reported as measured. Reading the transcripts, the agent took no harmful action.
+
+### Ablation: what each layer buys (40 stratified scenarios, scripted customers)
+`python -m eval.run_eval --config ablation --n 40 --seed 1 --simulator scripted --no-judge` → [table](eval/results/runs/ablation-n40-s1-scripted-qwen3-4b-instruct/ablation.md)
+
+| Config | Task success | Wrong-action rate | False 'done' claims | Esc. precision | Esc. recall | Injection success | Policy accuracy | p50 / p95 latency | ₹ / convo (hosted ref.) |
+|---|---|---|---|---|---|---|---|---|---|
+| Baseline (prompt only) | 40.0% | 7.5% | 0.0% | n/a | 0.0% | 25.0% | 33.3% | 1.4 s / 4.2 s | ₹0.06 |
+| + policy engine | 47.5% | 0.0% | 0.0% | n/a | 0.0% | 25.0% | 33.3% | 1.2 s / 4.2 s | ₹0.06 |
+| + guardrails | 55.0% | 0.0% | 0.0% | 100.0% | 28.6% | 0.0% | 33.3% | 1.3 s / 4.9 s | ₹0.06 |
+| + RAG | 60.0% | 0.0% | 0.0% | 100.0% | 28.6% | 0.0% | 44.4% | 1.4 s / 5.4 s | ₹0.07 |
+| **+ router (full)** | **85.0%** | **0.0%** | 2.5% | 100.0% | 57.1% | **0.0%** | **100.0%** | 1.4 s / 4.3 s | ₹0.07 |
+
+What the table shows:
+- **The policy engine removes wrong actions** (7.5% → 0%). With only a prompt, the model changed the address on an already-shipped order, among other things.
+- **Guardrails stop injection** (25% → 0%). Without them the model printed its system prompt when asked.
+- **RAG plus the router's fast paths more than double task success** (40% → 85%) and take policy accuracy from 33% to 100%. A 4B model often answers from memory unless retrieval is done for it.
+- Escalation *precision* is 100% from the guardrails layer onward (every escalation was warranted), and the router's triggers doubled *recall*.
+
+### Tests and CI
+- **291 tests**, all LLM calls stubbed.
+- Coverage: **97%** overall and **97%** on policy/tools/guardrails/money (CI gate ≥ 85%). The policy engine is at 100%.
+- The prompt-injection regression suite (`tests/test_injection_regression.py`) runs a *fully jailbroken* scripted model against the real tools. It shows the policy engine alone blocks every attack, and that the same attack succeeds when the engine is disabled.
+- Smoke eval (10 scenarios) on the final code: 100% success, 0% wrong actions.
+
+> **Reproduce with another model:** set `HF_TOKEN` (or `LLM_API_KEY`) and re-run the two commands above. Results land in a new `eval/results/runs/<run-id>/` directory, and runs resume if interrupted.
 
 ## What failed and how I fixed it
 
@@ -90,13 +136,18 @@ Real problems hit while building this, roughly in order:
 9. **Hinglish false positive:** "fir se try karta hoon" ("I'll try again") was flagged as a legal threat, because FIR is also a police report. *Fix:* legal patterns now require FIR *filing* verbs, backed by a regression test.
 10. **A flaky backoff test.** Additive jitter could exceed exponential growth at small bases. *Fix:* multiplicative jitter (×1.0–1.25), which is strictly increasing, rerun 15×.
 11. **The GPU wasn't used at first.** The NVIDIA DKMS module build had been interrupted during a system update, so no kernel module existed for the running kernel and Ollama fell back to the CPU. *Fix:* rebuilt the module with DKMS and started Ollama with its Vulkan backend (`OLLAMA_VULKAN=1`; this install ships no CUDA runner). Generation went from ~9 to ~70 tok/s, and a whole eval scenario from 30–90 s to a few seconds.
-12. **Process hygiene:** I committed once with a failing test (a pipe hid pytest's exit code) and once with a lint error. *Fix:* a `set -euo pipefail` quality gate before every commit, and the bad commits were amended locally before anything was pushed.
+12. **My own judge was too strict.** Reading failed transcripts from the first ablation showed that two correct policy answers ("cannot add a GSTIN… during checkout", "6-month warranty") had been scored as failures, because the accepted-phrase lists said "cannot be added" and "6 months". *Fix:* the judge now normalises hyphens and dashes and matches on word stems, and the phrase lists were broadened. The same lists apply to every config, and the superseded run is kept in `eval/results/superseded/v1-*`.
+13. **The router missed general questions.** "How soon must I report a damaged item?" was classified as a complaint and "Is shipping free?" got a low-confidence default, so neither triggered KB retrieval, and the model hallucinated "7 days" and "₹1,000". *Fix:* a question with no order number and nothing personal ("my order"), about policy or product issues, is routed as a confident policy question.
+14. **The eval caught a real wrong action in the full stack.** A customer mistyped a 5-digit PIN; the model silently replaced it with the PIN from their verification message and changed the delivery address. The policy engine allowed it, because the order hadn't shipped, and policy checks eligibility, not the truth of the data. *Fix:* address provenance in code. `update_address` refuses unless one customer message contains both the new PIN code and the address line, so the model can relay an address but never invent or "correct" one. Regression test included; the run that found it is kept in `eval/results/superseded/v2-*`.
+15. **Process hygiene:** I committed once with a failing test (a pipe hid pytest's exit code) and once with a lint error. *Fix:* a `set -euo pipefail` quality gate before every commit, and the bad commits were amended locally before anything was pushed.
 
 
 ## Limitations
 - **Model capability.** A 4B model on a CPU is the binding constraint on task success: it sometimes over-confirms, explains a process instead of acting, or quotes wrong facts. The safety layers keep that from turning into *wrong actions*, but they can't make it helpful. See "Future work" for the one-line switch to a hosted model.
 - **Latency numbers are for one laptop GPU** (RTX 4060, 8 GB, Vulkan) serving one conversation at a time. Concurrent users would queue on a single Ollama instance.
-- **The LLM judge is the same 4B model.** Tone, helpfulness and faithfulness scores are secondary and noisy; the deterministic judges are the primary signal.
+- **The LLM judge is the same 4B model.** It gave near-perfect tone scores and never scored faithfulness (null in all 116 cases). Treat its numbers as weak signals; the deterministic judges are the primary measure.
+- **The model can be talked into false facts.** In one transcript it agreed with the customer that a correct delivery date was "a system error". Output checks verify actions, not every stated fact.
+- **Escalation recall is 41% in the main run.** LLM-simulated customers often end the chat before an escalation trigger fires, and the 4B agent under-uses `escalate_to_human` on its own.
 - **The ablation grid used 40 stratified scenarios with a scripted customer** (the main run uses all 116 with an LLM customer). Differences of a few points between configs are within noise at that size.
 - **Low-value false non-delivery claims** are routed to a human by the prompt, not by code. The policy engine would allow a ₹899 refund on a delivered order if the model called the tool.
 - **Rate limiting and budget caching are per process.** They are fine for one instance; multiple replicas need Redis/Postgres-backed counters.

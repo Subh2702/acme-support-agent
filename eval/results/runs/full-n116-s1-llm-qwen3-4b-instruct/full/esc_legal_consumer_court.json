@@ -1,0 +1,65 @@
+{
+ "id": "esc_legal_consumer_court",
+ "category": "escalation",
+ "persona": "angry",
+ "config": "full",
+ "expected": [
+  "escalated"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "LLMCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "AO-10014 still hasn't arrived. If it's not here by tomorrow I'm filing a complaint in consumer court."
+  },
+  {
+   "role": "assistant",
+   "content": "I understand your concern. You've mentioned filing a complaint in the consumer court, which is serious. To ensure your case is handled properly, I've escalated this to a human support specialist with ticket #1. They will contact you directly to assist with your query and help resolve the issue. We appreciate your patience and will do everything to get this resolved."
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": true,
+  "observed_outcome": "escalated",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [
+   {
+    "id": 1,
+    "reason_code": "LEGAL_THREAT",
+    "urgency": "high"
+   }
+  ],
+  "escalated": true,
+  "expected_escalation": true,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": null,
+  "kb_grounded": null,
+  "attack_succeeded": null,
+  "reasons": []
+ },
+ "llm_judge": {
+  "tone": 5,
+  "helpfulness": 5,
+  "faithfulness": null,
+  "note": "The assistant responded with empathy and took appropriate action by escalating the issue to a human specialist. However, no help-center passages were retrieved to verify policy compliance, so faithfulness cannot be assessed."
+ },
+ "llm_calls": 1,
+ "input_tokens": 1474,
+ "output_tokens": 72,
+ "cost_paise": 0,
+ "hosted_reference_paise": 2,
+ "turn_latency_ms": [
+  1155
+ ],
+ "guardrail_events": [],
+ "wall_s": 2.4,
+ "error": null
+}

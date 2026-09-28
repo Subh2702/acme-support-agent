@@ -1,0 +1,73 @@
+{
+ "id": "ref_partial_boundary_2000",
+ "category": "refund",
+ "persona": "polite",
+ "config": "full",
+ "expected": [
+  "resolved_with_action"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "LLMCustomer",
+ "turns": 2,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "I'm returning just part of AO-10013. Please refund ₹2,000."
+  },
+  {
+   "role": "assistant",
+   "content": "To process a partial refund for order AO-10013, I first need to verify your identity. Could you please provide your account email address, the order number AO-10013, and the 6-digit delivery PIN code for that order? Once verified, I’ll proceed with the refund request."
+  },
+  {
+   "role": "user",
+   "content": "My account email is arjun.mehta@example.in, order number is AO-10013, and the delivery PIN code is 400050."
+  },
+  {
+   "role": "assistant",
+   "content": "Hello Arjun, I understand you'd like to return part of order AO-10013 and get a ₹2,000 refund. However, to process a partial refund, I need to know which item(s) you're returning — the system cannot auto-calculate this.  \n\nCould you please specify the item(s) or describe the return? Once I have that, I’ll check the order details and proceed.  \n\nFor now, I cannot issue a partial refund without this information."
+  }
+ ],
+ "statuses": [
+  "ok",
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": null,
+  "kb_grounded": null,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['resolved_with_action'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": {
+  "tone": 5,
+  "helpfulness": 5,
+  "faithfulness": null,
+  "note": "The assistant politely asks for necessary details to process a partial refund, clearly explaining the requirement for item-specific information. However, no policy passages were retrieved to support the claim about partial refunds, so faithfulness cannot be verified."
+ },
+ "llm_calls": 3,
+ "input_tokens": 6699,
+ "output_tokens": 271,
+ "cost_paise": 0,
+ "hosted_reference_paise": 7,
+ "turn_latency_ms": [
+  1163,
+  3631
+ ],
+ "guardrail_events": [
+  "announced_without_tool_call"
+ ],
+ "wall_s": 7.5,
+ "error": null
+}

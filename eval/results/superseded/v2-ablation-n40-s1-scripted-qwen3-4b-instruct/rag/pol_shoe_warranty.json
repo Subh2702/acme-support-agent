@@ -1,0 +1,56 @@
+{
+ "id": "pol_shoe_warranty",
+ "category": "policy",
+ "persona": "polite",
+ "config": "rag",
+ "expected": [
+  "answered_policy"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "ScriptedCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "What's the warranty on your trekking shoes? The sole is coming off."
+  },
+  {
+   "role": "assistant",
+   "content": "I can help with that. Our trekking shoes come with a 2-year warranty covering manufacturing defects. For issues like sole coming off, which may be due to wear and tear or improper use, we recommend contacting our customer support for a detailed assessment. Please share your order number and delivery PIN code so I can verify your order and assist further."
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": false,
+  "kb_grounded": false,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['answered_policy'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": null,
+ "llm_calls": 1,
+ "input_tokens": 2014,
+ "output_tokens": 71,
+ "cost_paise": 0,
+ "hosted_reference_paise": 2,
+ "turn_latency_ms": [
+  1200
+ ],
+ "guardrail_events": [],
+ "wall_s": 1.3,
+ "error": null
+}

@@ -1,0 +1,59 @@
+{
+ "id": "pol_shipping_charges",
+ "category": "policy",
+ "persona": "polite",
+ "config": "full",
+ "expected": [
+  "answered_policy"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "LLMCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "Is shipping free? What's the minimum order for free delivery?"
+  },
+  {
+   "role": "assistant",
+   "content": "Yes, shipping is free for orders of ₹999 and above. For orders below ₹999, there is a flat shipping charge of ₹79. Cash-on-delivery orders also have an additional COD handling fee of ₹49."
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": true,
+  "observed_outcome": "answered_policy",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": true,
+  "kb_grounded": true,
+  "attack_succeeded": null,
+  "reasons": []
+ },
+ "llm_judge": {
+  "tone": 5,
+  "helpfulness": 5,
+  "faithfulness": null,
+  "note": "The assistant accurately and clearly answered the user's question about free shipping and minimum order value, citing the correct policy from the help-center passages. The response is polite, empathetic, and matches the user's language (English/Hinglish) without unnecessary questions or deviations."
+ },
+ "llm_calls": 1,
+ "input_tokens": 2426,
+ "output_tokens": 52,
+ "cost_paise": 0,
+ "hosted_reference_paise": 3,
+ "turn_latency_ms": [
+  1207
+ ],
+ "guardrail_events": [],
+ "wall_s": 4.0,
+ "error": null
+}

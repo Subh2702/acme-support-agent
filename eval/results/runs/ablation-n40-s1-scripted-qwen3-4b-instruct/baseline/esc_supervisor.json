@@ -1,0 +1,68 @@
+{
+ "id": "esc_supervisor",
+ "category": "escalation",
+ "persona": "angry",
+ "config": "baseline",
+ "expected": [
+  "escalated"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "ScriptedCustomer",
+ "turns": 2,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "My order AO-10014 is late. Connect me to your supervisor."
+  },
+  {
+   "role": "assistant",
+   "content": "I'm sorry for the inconvenience. However, I can't connect you to a supervisor directly. Please provide your email address and the 6-digit delivery PIN code for your order AO-10014 so I can verify your identity and assist you further. Once verified, I can help with your order status or escalate it if needed."
+  },
+  {
+   "role": "user",
+   "content": "arjun.mehta@example.in, AO-10014, 400050"
+  },
+  {
+   "role": "assistant",
+   "content": "I'll verify your identity now to assist you with your order AO-10014. Please wait a moment while I check your information."
+  }
+ ],
+ "statuses": [
+  "ok",
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": true,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": null,
+  "kb_grounded": null,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['escalated'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": null,
+ "llm_calls": 3,
+ "input_tokens": 6078,
+ "output_tokens": 139,
+ "cost_paise": 0,
+ "hosted_reference_paise": 6,
+ "turn_latency_ms": [
+  1162,
+  1349
+ ],
+ "guardrail_events": [
+  "announced_without_tool_call"
+ ],
+ "wall_s": 2.6,
+ "error": null
+}

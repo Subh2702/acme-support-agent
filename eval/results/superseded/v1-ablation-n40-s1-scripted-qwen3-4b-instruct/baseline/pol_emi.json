@@ -1,0 +1,56 @@
+{
+ "id": "pol_emi",
+ "category": "policy",
+ "persona": "polite",
+ "config": "baseline",
+ "expected": [
+  "answered_policy"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "ScriptedCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "Do you have EMI options on credit cards?"
+  },
+  {
+   "role": "assistant",
+   "content": "Currently, Acme Outdoors does not offer EMI options on credit card purchases. All payments are made in a single installment. For more details, you may check our payment page or contact our support team."
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": false,
+  "kb_grounded": false,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['answered_policy'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": null,
+ "llm_calls": 1,
+ "input_tokens": 1917,
+ "output_tokens": 43,
+ "cost_paise": 0,
+ "hosted_reference_paise": 2,
+ "turn_latency_ms": [
+  683
+ ],
+ "guardrail_events": [],
+ "wall_s": 0.7,
+ "error": null
+}

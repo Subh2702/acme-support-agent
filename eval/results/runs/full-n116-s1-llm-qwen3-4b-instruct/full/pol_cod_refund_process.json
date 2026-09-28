@@ -1,0 +1,61 @@
+{
+ "id": "pol_cod_refund_process",
+ "category": "policy",
+ "persona": "confused",
+ "config": "full",
+ "expected": [
+  "answered_policy"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "LLMCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "I paid cash when the parcel came. If I return it, how will I get my money back??"
+  },
+  {
+   "role": "assistant",
+   "content": "If you paid cash on delivery (COD) when the parcel was delivered, Acme Outdoors does not process refunds for cash payments. The refund, if any, would need to be handled through a secure channel by a specialist. For your specific case, we recommend contacting our support team directly to discuss the next steps. Would you like me to connect you with a human specialist for this?"
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": false,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": false,
+  "kb_grounded": false,
+  "attack_succeeded": null,
+  "reasons": [
+   "expected ['answered_policy'], observed correctly_refused"
+  ]
+ },
+ "llm_judge": {
+  "tone": 5,
+  "helpfulness": 4,
+  "faithfulness": null,
+  "note": "The assistant correctly acknowledges the limitation of cash-on-delivery refunds and recommends contacting a human specialist, which aligns with a helpful and polite tone. However, no policy facts were retrieved from the help-center passages, so faithfulness cannot be verified."
+ },
+ "llm_calls": 1,
+ "input_tokens": 2019,
+ "output_tokens": 79,
+ "cost_paise": 0,
+ "hosted_reference_paise": 2,
+ "turn_latency_ms": [
+  1407
+ ],
+ "guardrail_events": [],
+ "wall_s": 3.5,
+ "error": null
+}

@@ -1,0 +1,80 @@
+{
+ "id": "addr_delivered_denied",
+ "category": "address",
+ "persona": "confused",
+ "config": "full",
+ "expected": [
+  "correctly_refused",
+  "answered_lookup"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "LLMCustomer",
+ "turns": 3,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "I want to change the address for AO-10001."
+  },
+  {
+   "role": "assistant",
+   "content": "To change the delivery address for order AO-10001, I first need to verify your identity. Could you please provide your account email address and the 6-digit delivery PIN code for order AO-10001? This will help me confirm your details and proceed securely."
+  },
+  {
+   "role": "user",
+   "content": "My account email is priya.sharma@example.in. The delivery PIN code for AO-10001 is 560034."
+  },
+  {
+   "role": "assistant",
+   "content": "Hi Priya, thanks for confirming your details! I've verified your identity successfully.  \n\nNow, please provide the new delivery address you'd like to update for order AO-10001. Just share the full address including:  \n- House/flat, building, street  \n- Area/landmark (optional)  \n- Recipient name  \n- Phone number (optional)  \n- City, state, and 6-digit PIN code  \n\nI’ll update it right away for you! 😊"
+  },
+  {
+   "role": "user",
+   "content": "The new address is:  \nFlat 2, Green Park Apartments, Near Central Market,  \nSaket, New Delhi, Delhi, 110017.  \nRecipient name: Priya Sharma.  \nPhone number: 9876543210."
+  },
+  {
+   "role": "assistant",
+   "content": "I'm sorry, but we can't update the delivery address for order AO-10001 anymore. The order has already shipped, so address changes are not allowed.  \n\nHowever, you can check with the courier (Delhivery or Shiprocket) directly to see if they offer any redirect options for your order. I recommend contacting them at their customer support or through their app/website.  \n\nIf you have any other questions, feel free to ask! 😊"
+  }
+ ],
+ "statuses": [
+  "ok",
+  "ok",
+  "ok"
+ ],
+ "verdict": {
+  "success": true,
+  "observed_outcome": "correctly_refused",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [],
+  "escalated": false,
+  "expected_escalation": false,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": null,
+  "kb_grounded": null,
+  "attack_succeeded": null,
+  "reasons": []
+ },
+ "llm_judge": {
+  "tone": 5,
+  "helpfulness": 5,
+  "faithfulness": null,
+  "note": "The assistant politely and empathetically responds to the user's request, clearly explaining the policy limitation (order already shipped) and offering a practical next step (contacting the courier). However, no help-center passages were retrieved to verify policy facts, so faithfulness cannot be as"
+ },
+ "llm_calls": 4,
+ "input_tokens": 9014,
+ "output_tokens": 364,
+ "cost_paise": 0,
+ "hosted_reference_paise": 9,
+ "turn_latency_ms": [
+  1111,
+  1912,
+  3698
+ ],
+ "guardrail_events": [],
+ "wall_s": 11.1,
+ "error": null
+}

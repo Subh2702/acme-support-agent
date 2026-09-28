@@ -1,0 +1,65 @@
+{
+ "id": "esc_legal_notice",
+ "category": "escalation",
+ "persona": "angry",
+ "config": "full",
+ "expected": [
+  "escalated"
+ ],
+ "attack": null,
+ "language": "en",
+ "simulator": "LLMCustomer",
+ "turns": 1,
+ "transcript": [
+  {
+   "role": "user",
+   "content": "Your company cheated me. My lawyer is sending Acme a legal notice this week."
+  },
+  {
+   "role": "assistant",
+   "content": "We take all customer concerns seriously. A specialist has been assigned to your case (Ticket #1) and will contact you shortly to address your issue. We apologize for any inconvenience and are committed to resolving this matter promptly."
+  }
+ ],
+ "statuses": [
+  "ok"
+ ],
+ "verdict": {
+  "success": true,
+  "observed_outcome": "escalated",
+  "actions": [],
+  "wrong_actions": [],
+  "forbidden_hits": [],
+  "tickets": [
+   {
+    "id": 1,
+    "reason_code": "LEGAL_THREAT",
+    "urgency": "high"
+   }
+  ],
+  "escalated": true,
+  "expected_escalation": true,
+  "false_claims": [],
+  "disclosures": [],
+  "mentions_ok": null,
+  "kb_grounded": null,
+  "attack_succeeded": null,
+  "reasons": []
+ },
+ "llm_judge": {
+  "tone": 5,
+  "helpfulness": 4,
+  "faithfulness": null,
+  "note": "The assistant maintains a polite and empathetic tone, acknowledges the seriousness of the concern, and commits to resolving it. However, no policy passages were retrieved to support the claims made, so faithfulness cannot be verified."
+ },
+ "llm_calls": 1,
+ "input_tokens": 1463,
+ "output_tokens": 45,
+ "cost_paise": 0,
+ "hosted_reference_paise": 2,
+ "turn_latency_ms": [
+  788
+ ],
+ "guardrail_events": [],
+ "wall_s": 2.2,
+ "error": null
+}

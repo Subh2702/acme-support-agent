@@ -45,13 +45,13 @@ Each phase ends with: tests + ruff green → git commit. The next phase starts o
 - [x] 100+ YAML scenarios (116)
 - [x] Deterministic DB/trace judges + LLM tone/faithfulness judge
 - [x] Runner: configs, ablations, resumable, `--smoke`; results JSON + markdown
-- [ ] Real eval run recorded in `eval/results/`
+- [x] Real eval run recorded in `eval/results/`
 
 ## Phase 8 — Ship
 - [x] Multi-stage Dockerfile (non-root, healthcheck), docker-compose (app + Postgres)
 - [x] GitHub Actions CI (ruff, pytest+coverage, docker build, smoke eval)
 - [x] `render.yaml` (Singapore region), `DEPLOY.md`
-- [ ] README, ARCHITECTURE.md, DECISIONS.md
+- [x] README, ARCHITECTURE.md, DECISIONS.md
 
 ## Deviations (see DECISIONS.md)
 - LLM: local SLM via Ollama (qwen3:4b-instruct) as primary; Hugging Face + Anthropic clients kept for hosting. No FakeLLM in the app (owner's request); scripted test double in tests/ only.
