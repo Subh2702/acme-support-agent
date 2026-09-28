@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     ollama_num_ctx: int = 8192
     llm_timeout_s: float = 180.0
     llm_max_retries: int = 3
-    llm_max_output_tokens: int = 2048
+    llm_max_output_tokens: int = 600
     # Optional price override (USD per million tokens) for models not in the price table.
     llm_price_input_usd_per_mtok: float | None = None
     llm_price_output_usd_per_mtok: float | None = None
@@ -62,6 +62,7 @@ class Settings(BaseSettings):
     chroma_dir: Path = ROOT_DIR / "data" / "chroma"
     embedding_backend: Literal["fastembed", "hash"] = "fastembed"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
+    fastembed_cache_dir: Path = ROOT_DIR / "data" / "models"
     rag_top_k: int = 4
 
     # --- Admin / abuse controls ---------------------------------------------------
