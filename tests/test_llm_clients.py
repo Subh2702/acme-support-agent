@@ -64,8 +64,9 @@ def test_ollama_request_and_tool_call_parsing() -> None:
     assert resp.tool_calls[0].arguments == {"order_number": "AO-10001"}
     assert resp.cost_usd == Decimal(0) and resp.usage.input_tokens == 1800
     assert seen["options"]["num_ctx"] == 8192 and seen["think"] is False
-    assert seen["messages"][0] == {"role": "system", "content": "SYS\n\nCTX"}
-    assert seen["messages"][-1]["tool_name"] == "get_order"
+    assert seen["messages"][0] == {"role": "system", "content": "SYS"}
+    assert seen["messages"][-1] == {"role": "system", "content": "CTX"}  # keeps prefix cacheable
+    assert seen["messages"][-2]["tool_name"] == "get_order"
 
 
 def test_ollama_errors() -> None:

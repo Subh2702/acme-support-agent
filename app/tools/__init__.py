@@ -48,23 +48,26 @@ REGISTRY: dict[str, ToolSpec] = {
         ),
         ToolSpec(
             "cancel_order",
-            "Cancel an order that has not shipped yet.",
+            "Cancel an order. Call it as soon as a verified customer asks to cancel; the system "
+            "checks eligibility (only unshipped orders) and the reason is optional.",
             CancelArgs,
             cancel_order,
             is_action=True,
         ),
         ToolSpec(
             "issue_refund",
-            "Refund a delivered order to the original payment method. amount_paise is an "
-            "integer in paise. Business rules are enforced by the system; the result says "
-            "whether it was issued, needs approval, or is not allowed and why.",
+            "Refund an order to the original payment method. Call it as soon as a verified "
+            "customer asks; for a full refund use total_paise from get_order. amount_paise is an "
+            "integer in paise. The system enforces the business rules; the result says whether "
+            "it was issued, needs approval, or is not allowed and why. Reason is optional.",
             RefundArgs,
             issue_refund,
             is_action=True,
         ),
         ToolSpec(
             "update_address",
-            "Change the delivery address of an order that has not shipped.",
+            "Change the delivery address of an order. Call it as soon as a verified customer "
+            "gives the new address; the system checks eligibility (only unshipped orders).",
             AddressArgs,
             update_address,
             is_action=True,

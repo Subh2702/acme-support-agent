@@ -1,0 +1,63 @@
+# Local stack: app + Postgres (+ optional containerised Ollama).
+#   docker compose up --build                   # uses Ollama running on your host
+#   docker compose --profile ollama up --build  # runs Ollama in a container too
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: acme
+      POSTGRES_PASSWORD: acme
+      POSTGRES_DB: acme
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acme -d acme"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://acme:acme@db:5432/acme
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:4b-instruct}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-locally}
+      DAILY_BUDGET_INR: ${DAILY_BUDGET_INR:-300}
+      USD_INR_RATE: ${USD_INR_RATE:-85}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - appdata:/app/data
+
+  # Optional: Ollama in a container (downloads ~2.5 GB of model weights on first run).
+  ollama:
+    profiles: ["ollama"]
+    image: ollama/ollama:latest
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+  ollama-pull:
+    profiles: ["ollama"]
+    image: ollama/ollama:latest
+    depends_on: [ollama]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["sh", "-c", "sleep 3 && ollama pull ${OLLAMA_MODEL:-qwen3:4b-instruct}"]
+    restart: "no"
+
+volumes:
+  pgdata:
+  appdata:
+  ollama:

@@ -33,7 +33,7 @@ REVERSAL_TIMELINE = {
 
 
 class CancelArgs(OrderRef):
-    reason: str = Field(default="", max_length=500, description="Why the customer is cancelling")
+    reason: str = Field(default="", max_length=500, description="Optional; never ask for it")
 
 
 class RefundArgs(OrderRef):
@@ -41,7 +41,7 @@ class RefundArgs(OrderRef):
         description="Refund amount in integer paise (₹1 = 100 paise). Use the order total for a "
         "full refund."
     )
-    reason: str = Field(default="", max_length=500, description="Why the customer wants a refund")
+    reason: str = Field(default="", max_length=500, description="Optional; never ask for it")
 
 
 class NewAddress(BaseModel):

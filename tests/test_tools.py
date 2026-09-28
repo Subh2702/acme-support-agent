@@ -351,3 +351,26 @@ def test_policy_decisions_are_traced(db: Database) -> None:
     call(ctx, "cancel_order", order_number="AO-10003")
     kinds = [(e.kind, e.payload.get("decision")) for e in ctx.tracer.events]
     assert ("policy_decision", "DENY") in kinds
+
+
+def test_get_order_includes_policy_eligibility_without_thresholds(db: Database) -> None:
+    ctx = make_ctx(db, state=verified_state())
+    fresh = call(ctx, "get_order", order_number="AO-10001").data["eligibility"]
+    assert fresh["full_refund"].startswith("possible") and fresh["cancel"].startswith("not")
+    expired = call(ctx, "get_order", order_number="AO-10005").data["eligibility"]
+    assert "30-day refund window" in expired["full_refund"]
+    assert (
+        call(ctx, "get_order", order_number="AO-10002")
+        .data["eligibility"]["cancel"]
+        .startswith("possible")
+    )
+    rahul = make_ctx(db, state=verified_state(2, "Rahul Verma"), conversation_id="c2")
+    big = call(rahul, "get_order", order_number="AO-10007").data["eligibility"]["full_refund"]
+    assert big.startswith("possible") and "2,000" not in big and "10,000" not in big
+    baseline = make_ctx(
+        db,
+        state=verified_state(),
+        conversation_id="c3",
+        flags=AgentFlags(policy=False, guardrails=False, rag=False, router=False),
+    )
+    assert "eligibility" not in call(baseline, "get_order", order_number="AO-10001").data

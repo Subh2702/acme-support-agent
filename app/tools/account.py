@@ -12,7 +12,17 @@ from sqlalchemy.orm import Session
 from app.agent.handoff import open_ticket
 from app.db.models import Customer, Order, PaymentMethod
 from app.money import format_inr
-from app.policy.engine import Actor, OrderFacts, check_account_access, check_order_access
+from app.policy.engine import (
+    Actor,
+    Decision,
+    OrderFacts,
+    PolicyResult,
+    check_account_access,
+    check_address_change,
+    check_cancel,
+    check_order_access,
+    check_refund,
+)
 from app.timeutil import format_ist
 from app.tools.base import OrderRef, ToolContext, ToolResult, normalise_order_number
 
@@ -220,6 +230,28 @@ def order_details(order: Order, ctx: ToolContext) -> dict[str, object]:
         "refund_window_ends": format_ist(window_end) if order.status == "delivered" else None,
         "can_cancel": order.status == "processing",
         "can_change_address": order.status == "processing",
+        **({"eligibility": _eligibility(order, ctx)} if ctx.flags.policy else {}),
+    }
+
+
+def _eligibility(order: Order, ctx: ToolContext) -> dict[str, str]:
+    """Policy-engine dry run so the model reads decisions instead of doing date math.
+
+    Deliberately coarse: it never reveals approval thresholds, only whether an action
+    is possible at all and, if not, why.
+    """
+    actor = Actor(ctx.state.verified_customer_id, 0)
+    facts = order_facts(order)
+
+    def verdict(result: PolicyResult) -> str:
+        if result.decision is Decision.DENY:
+            return f"not possible: {result.explanation}"
+        return "possible: call the tool; the system decides the outcome"
+
+    return {
+        "full_refund": verdict(check_refund(actor, facts, order.total_paise, ctx.now, ctx.policy)),
+        "cancel": verdict(check_cancel(actor, facts, ctx.policy)),
+        "change_address": verdict(check_address_change(actor, facts, ctx.policy)),
     }
 
 

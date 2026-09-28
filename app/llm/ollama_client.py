@@ -18,7 +18,9 @@ from app.llm.types import ChatMessage, LLMError, LLMResponse, ToolCall, ToolSche
 
 
 def _to_api_messages(system: str, context: str, messages: list[ChatMessage]) -> list[dict]:
-    out: list[dict[str, Any]] = [{"role": "system", "content": f"{system}\n\n{context}"}]
+    # Static prompt first (cacheable with the tool block the template renders after it);
+    # the per-turn context goes last so it never invalidates the prompt-prefix cache.
+    out: list[dict[str, Any]] = [{"role": "system", "content": system}]
     names_by_id: dict[str, str] = {}
     for msg in messages:
         if msg.role == "assistant":
@@ -39,6 +41,8 @@ def _to_api_messages(system: str, context: str, messages: list[ChatMessage]) -> 
             )
         else:
             out.append({"role": "user", "content": msg.content})
+    if context:
+        out.append({"role": "system", "content": context})
     return out
 
 

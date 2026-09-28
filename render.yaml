@@ -1,0 +1,53 @@
+# Render Blueprint: web service (Docker) + managed Postgres, both in Singapore
+# (the Render region closest to India).
+services:
+  - type: web
+    name: acme-support-agent
+    runtime: docker
+    region: singapore
+    plan: starter            # 512 MB+; the free plan sleeps and is tight on memory
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acme-db
+          property: connectionString
+      - key: APP_ENV
+        value: production
+      # A hosted LLM is required on Render (no local Ollama). Hugging Face is the default;
+      # set LLM_API_KEY instead to use Anthropic (LLM_PROVIDER=anthropic).
+      - key: LLM_PROVIDER
+        value: huggingface
+      - key: HF_TOKEN
+        sync: false
+      - key: HF_MODEL
+        value: Qwen/Qwen3-235B-A22B-Instruct-2507:cheapest
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: claude-opus-5
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: IP_HASH_SALT
+        generateValue: true
+      - key: DAILY_BUDGET_INR
+        value: "100"
+      - key: USD_INR_RATE
+        value: "85"
+      - key: RATE_LIMIT_IP_PER_MIN
+        value: "20"
+      - key: RATE_LIMIT_SESSION_PER_MIN
+        value: "10"
+      - key: LOG_LEVEL
+        value: INFO
+
+databases:
+  - name: acme-db
+    region: singapore
+    plan: basic-256mb
+    databaseName: acme
+    user: acme
