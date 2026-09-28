@@ -27,15 +27,22 @@ class Settings(BaseSettings):
     seed_on_startup: bool = True
 
     # --- LLM --------------------------------------------------------------
-    # `auto` picks anthropic if LLM_API_KEY is set, else huggingface if HF_TOKEN is set,
-    # else the deterministic FakeLLM (useful for offline demos and CI).
-    llm_provider: Literal["auto", "anthropic", "huggingface", "fake"] = "auto"
+    # `auto`: anthropic if LLM_API_KEY is set, else huggingface if HF_TOKEN is set, else a
+    # local small model served by Ollama.
+    llm_provider: Literal["auto", "anthropic", "huggingface", "ollama"] = "auto"
     llm_api_key: str = ""
     llm_model: str = "claude-opus-5"
     llm_effort: Literal["low", "medium", "high"] = "medium"
     hf_token: str = ""
-    hf_model: str = "Qwen/Qwen3-235B-A22B-Instruct-2507"
-    llm_timeout_s: float = 60.0
+    # `:cheapest` lets the HF router pick the lowest-priced provider for the model.
+    hf_model: str = "Qwen/Qwen3-235B-A22B-Instruct-2507:cheapest"
+    # Cheaper model for the eval customer simulator and LLM judge.
+    hf_eval_model: str = "Qwen/Qwen3-235B-A22B-Instruct-2507:cheapest"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen3:4b-instruct"
+    ollama_eval_model: str = ""  # simulator/judge model; defaults to OLLAMA_MODEL
+    ollama_num_ctx: int = 8192
+    llm_timeout_s: float = 180.0
     llm_max_retries: int = 3
     llm_max_output_tokens: int = 2048
     # Optional price override (USD per million tokens) for models not in the price table.
@@ -75,14 +82,20 @@ class Settings(BaseSettings):
         return value
 
     @property
-    def resolved_llm_provider(self) -> Literal["anthropic", "huggingface", "fake"]:
+    def resolved_llm_provider(self) -> Literal["anthropic", "huggingface", "ollama"]:
         if self.llm_provider != "auto":
             return self.llm_provider
         if self.llm_api_key:
             return "anthropic"
-        if self.hf_token:
-            return "huggingface"
-        return "fake"
+        return "huggingface" if self.hf_token else "ollama"
+
+    @property
+    def active_model(self) -> str:
+        return {
+            "anthropic": self.llm_model,
+            "huggingface": self.hf_model,
+            "ollama": self.ollama_model,
+        }[self.resolved_llm_provider]
 
     @property
     def is_sqlite(self) -> bool:

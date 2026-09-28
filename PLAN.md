@@ -16,10 +16,10 @@ Each phase ends with: tests + ruff green → git commit. The next phase starts o
 - [ ] Tests: every rule and boundary (day 29/30/31, ₹2,000 vs ₹2,000.01, ₹10,000 vs ₹10,000.01, COD, ownership, action cap), tool tests
 
 ## Phase 3 — LLM client, agent loop, router, state, tracing
-- [ ] `app/llm/` — `LLMClient` protocol, Anthropic impl, Hugging Face impl, `FakeLLM` (scripted + deterministic "naive agent"), cost accounting in paise
+- [ ] `app/llm/` — `LLMClient` protocol, Hugging Face impl (primary, real model), Anthropic impl, cost accounting in paise from real provider prices
 - [ ] `app/agent/` — hand-written tool loop (max iterations, per-tool timeouts, retry/backoff, fallback), state, router, prompts
 - [ ] `trace_events` logging for every LLM call / tool call / policy decision / guardrail hit
-- [ ] Tests: loop with scripted FakeLLM tool sequences, retries, timeouts
+- [ ] Tests: loop with a scripted test double (tests/ only, no network), retries, timeouts; live smoke test against HF
 
 ## Phase 4 — RAG
 - [ ] 15–25 help-center articles (Indian context) in `app/rag/kb/*.md`

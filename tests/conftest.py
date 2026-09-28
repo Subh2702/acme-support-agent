@@ -22,7 +22,8 @@ def make_settings(**overrides: object) -> Settings:
     base: dict[str, object] = {
         "app_env": "test",
         "database_url": "sqlite://",
-        "llm_provider": "fake",
+        "llm_provider": "huggingface",
+        "hf_token": "",
         "embedding_backend": "hash",
         "admin_password": "test-admin-pw",
         "seed_on_startup": True,
