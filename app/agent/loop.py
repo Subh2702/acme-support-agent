@@ -54,7 +54,8 @@ NUDGE_MESSAGE = (
 # "Let me check that for you." with no tool call: announced work that never happened.
 ANNOUNCED_WORK_RE = re.compile(
     r"\b(?:let me|i(?:'ll| will| am going to|'m going to)|allow me to)\s+(?:now\s+|quickly\s+)?"
-    r"(?:check|look|verify|see|find|fetch|pull|process|cancel|refund|update|change|go ahead)\b|"
+    r"(?:check|look|verify|see|find|fetch|retrieve|get|pull|review|process|cancel|refund|"
+    r"update|change|go ahead)\b|"
     r"\b(?:one moment|just a moment|please (?:wait|hold)|hold on)\b|"
     r"\b(?:check|dekh)(?:ta|ti) (?:hoon|hu)\b",
     re.IGNORECASE,
