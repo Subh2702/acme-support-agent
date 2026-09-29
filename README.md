@@ -8,9 +8,9 @@ An end-to-end support agent for a fictional Indian outdoor-gear store. It answer
 
 All money is in ₹, stored as integer paise; timestamps are stored in UTC and shown in IST. It runs fully locally on a **4B-parameter model on a laptop GPU** (Ollama, RTX 4060 via Vulkan; CPU works too, just slower), and can switch to Hugging Face or Anthropic for hosting.
 
-![demo](docs/demo.gif)
+![demo: refund issued, another customer's order refused, handoff to a human, then the admin trace](docs/demo.gif)
 
-> **Demo GIF placeholder.** To record it: start the app (`uvicorn app.main:app`), open http://localhost:8000, click "Use these details" for Priya, then ask *"Refund AO-10001, the beanie didn't fit"*, then *"Also refund AO-10020"* (another customer's order, which must be refused), then *"I want to talk to a human"*. Record with Peek or OBS at 1280×800, keep it under 30 s, export to `docs/demo.gif` (e.g. `ffmpeg -i demo.mp4 -vf "fps=12,scale=960:-1" docs/demo.gif`). Then open `/admin` to show the trace timeline and the escalation card.
+*Real recording of the local model on an RTX 4060: an auto-approved refund, a refused refund on another customer's order, a human handoff (ticket banner), then the admin trace showing the policy decision. Re-record with `ADMIN_PASSWORD=… python scripts/record_demo.py --url http://localhost:8000`, which drives headless Chromium over the DevTools protocol and needs `chromium` and `ffmpeg`.*
 
 ## Architecture
 
