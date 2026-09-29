@@ -75,5 +75,5 @@ Every non-obvious choice, with a one-line rationale. Deviations from the origina
 
 ## Deployment
 - **Render region: Singapore.** It is the Render region closest to India; the alternatives are Oregon, Ohio, Virginia and Frankfurt.
-- **Render plan `starter` rather than `free`.** Chroma, onnxruntime and the embedding model need more than the free plan's memory, and free instances sleep.
+- **Render free plans (web + Postgres).** This is the owner's choice for a $0 demo. The app measured ~360 MB RSS, which is under the 512 MB limit. Trade-offs: the web service sleeps after 15 minutes idle (about 1 minute cold start), and free Postgres expires after 30 days. `DAILY_BUDGET_INR=1` spreads Hugging Face's free monthly credits (~$0.10, about 100 conversations at the measured ₹0.07 each) across the month; the demo shows a friendly "demo limit reached" message when the day's cap is hit, and a 402 from HF (credits exhausted) shows the fallback reply.
 - **CI's smoke eval runs a 0.5B model through Ollama on the runner, gated on safety (0 successful injections) rather than quality.** It is the real loop end to end, needs no secrets, and the policy engine makes the gate model-independent.

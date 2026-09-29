@@ -21,8 +21,8 @@ GitHub Actions (`.github/workflows/ci.yml`) starts automatically: lint, tests wi
 ## 2. Create the Blueprint on Render (5 min)
 1. Render dashboard → **New +** → **Blueprint**.
 2. Connect the GitHub repo and select it. Render reads `render.yaml` and shows two resources:
-   - `acme-support-agent`: a Docker web service in **Singapore**, `starter` plan.
-   - `acme-db`: Postgres in **Singapore**, `basic-256mb`.
+   - `acme-support-agent`: a Docker web service in **Singapore**, `free` plan (sleeps after 15 minutes idle; about 1 minute to wake).
+   - `acme-db`: Postgres in **Singapore**, `free` plan (expires after 30 days; upgrade to keep the data).
 3. Fill the variables marked **sync: false**:
    - `HF_TOKEN`: your Hugging Face token. Leave empty if you use Anthropic.
    - `LLM_API_KEY`: your Anthropic key. Leave empty if you use Hugging Face.
@@ -47,7 +47,7 @@ On the first boot the database is seeded automatically (40 customers, 150 orders
 ## 4. Recommended settings for a public demo
 | Variable | Suggested | Why |
 |---|---|---|
-| `DAILY_BUDGET_INR` | `100` | Hard daily cap on LLM spend; the chat shows "demo limit reached" when it's hit |
+| `DAILY_BUDGET_INR` | `1` on HF free credits; raise it once you add credits | Hard daily cap on LLM spend; the chat shows "demo limit reached" when it's hit. Hugging Face's free ~$0.10/month covers ~100 conversations |
 | `RATE_LIMIT_IP_PER_MIN` | `20` | Per-IP flood protection |
 | `RATE_LIMIT_SESSION_PER_MIN` | `10` | Per-conversation flood protection |
 | `HF_MODEL` | `Qwen/Qwen3-235B-A22B-Instruct-2507:cheapest` | Strong tool use; `:cheapest` picks the lowest-price provider |
@@ -70,4 +70,4 @@ Open http://localhost:8000 (chat) and http://localhost:8000/admin.
 | Hugging Face 402 in logs | Credits exhausted; add credits or switch provider |
 | `/readyz` 503 with `knowledge_base: building` | Wait for the first index build (seconds) |
 | `/admin` returns 503 | `ADMIN_PASSWORD` is empty |
-| Out-of-memory on Render | Use the `starter` plan or larger (Chroma + ONNX need more than 512 MB headroom) |
+| Out-of-memory on Render | The app idles at ~360 MB; if the free plan's 512 MB is exceeded, switch the web service to `starter` |
