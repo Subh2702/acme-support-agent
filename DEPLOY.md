@@ -1,5 +1,7 @@
 # Deploying
 
+**Deployed:** https://acme-support-agent.onrender.com. This is a Render Docker web service plus free Postgres in Singapore, created through the Render API from https://github.com/Subh2702/acme-support-agent, with auto-deploy on push to `main`. The steps below reproduce it from scratch.
+
 There was no authenticated hosting CLI in the build environment (no `render` or `gh` CLI, and Docker wasn't running), so nothing was deployed automatically. These steps take about 15 minutes.
 
 > **Why a hosted LLM on Render:** Render instances have no GPU and too little RAM to run a local model, so the public demo uses the Hugging Face router (or Anthropic) instead of Ollama. The daily ₹ budget cap (`DAILY_BUDGET_INR`) protects that key.

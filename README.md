@@ -1,10 +1,14 @@
 # Acme Outdoors — autonomous customer-support agent
 
+[![CI](https://github.com/Subh2702/acme-support-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Subh2702/acme-support-agent/actions/workflows/ci.yml)
+
 An end-to-end support agent for a fictional Indian outdoor-gear store. It answers policy questions from a help center (RAG), looks up orders, and **takes real actions**: cancellations, refunds and address changes. It escalates to a human, with a structured handoff, when it should. The engineering focus is **safe action-taking**:
 
 - Every business rule lives in a deterministic policy engine that runs *inside* each tool, so no phrasing, jailbreak or hallucination can move money it shouldn't.
 - Layered guardrails catch injection, PII leaks and "I've refunded you" claims that never happened.
 - A **simulation-based eval** (116 scenarios, 9 personas, deterministic DB-state judges) measures what each layer is worth.
+
+**Live demo: https://acme-support-agent.onrender.com** (Render free tier in Singapore, so the first request after idle takes about a minute; hosted model: Qwen3-235B via Hugging Face, capped at ₹1/day). The demo customer credentials are shown in the chat sidebar.
 
 All money is in ₹, stored as integer paise; timestamps are stored in UTC and shown in IST. It runs fully locally on a **4B-parameter model on a laptop GPU** (Ollama, RTX 4060 via Vulkan; CPU works too, just slower), and can switch to Hugging Face or Anthropic for hosting.
 
@@ -152,7 +156,7 @@ Real problems hit while building this, roughly in order:
 - **Low-value false non-delivery claims** are routed to a human by the prompt, not by code. The policy engine would allow a ₹899 refund on a delivered order if the model called the tool.
 - **Rate limiting and budget caching are per process.** They are fine for one instance; multiple replicas need Redis/Postgres-backed counters.
 - **Identity is a knowledge check** (email + order + PIN), not authentication. A real deployment would use OTP login.
-- **No live public URL yet:** no hosting CLI was available here. [DEPLOY.md](DEPLOY.md) has the ~15-minute Render steps, and the demo needs an LLM credential with credits.
+- **The public demo runs on free tiers.** Render sleeps after 15 minutes idle, the free Postgres expires on 29 Oct 2026, and Hugging Face's free credits cover roughly 100 conversations a month, after which the chat shows a "demo limit"/fallback reply.
 
 
 ## Future work
